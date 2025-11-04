@@ -72,4 +72,87 @@ export async function loginUser(req: Request, res: Response) {
   } catch(error) {
     return res.status(500).json({message: "Internal server error during user login"});
   }
-} 
+}
+
+interface createTodoBody {
+  title: string;
+}
+
+export async function createTodo(req: Request, res: Response) {
+  const {title} = req.body as createTodoBody;
+  const userEmail = req.user?.email;
+  try {
+    const newTodo = await prisma.todo.create({
+      data: {
+        title,
+        user: {
+          connect: {
+            email: userEmail,
+          }
+        }
+      }
+    });
+    return res.status(201).json({
+      message: "Todo created successfully",
+      todoId: newTodo.id,
+    });
+  } catch(error) {
+    return res.status(500).json({message: "Internal server error during todo creation"});
+  }
+}
+
+export async function markAsCompleted(req: Request, res: Response) {
+  const idParam = req.params.id;
+  if (!idParam) {
+    return res.status(400).json({message: "Todo id is required"});
+  }
+  const todoId = parseInt(idParam, 10);
+  if (Number.isNaN(todoId)) {
+    return res.status(400).json({message: "Invalid todo id"});
+  }
+  const userEmail = req.user?.email;
+  try {
+    const updatedTodo = await prisma.todo.update({
+      where: {
+        id: todoId,
+        user: {
+          email: userEmail,
+        }
+      },
+      data: {
+        completed: true,
+      }
+    });
+    return res.status(200).json({
+      message: "Todo marked as completed",
+      todoId: updatedTodo.id,
+    });
+  } catch(error) {
+    return res.status(500).json({message: "Internal server error during marking todo as completed"});
+  }
+}
+
+export async function deleteTodo(req: Request, res: Response) {
+  const idParam = req.params.id;
+  if (!idParam) {
+    return res.status(400).json({message: "Todo id is required"});
+  }
+  const todoId = parseInt(idParam, 10);
+  if (Number.isNaN(todoId)) {
+    return res.status(400).json({message: "Invalid todo id"});
+  }
+  const userEmail = req.user?.email;
+  try {
+    await prisma.todo.deleteMany({
+      where: {
+        id: todoId,
+        user: {
+          email: userEmail,
+        }
+      }
+    });
+    return res.status(200).json({message: "Todo deleted successfully"});
+  } catch(error) {
+    return res.status(500).json({message: "Internal server error during deleting todo"});
+  }
+}
