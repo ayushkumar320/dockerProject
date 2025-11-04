@@ -156,3 +156,22 @@ export async function deleteTodo(req: Request, res: Response) {
     return res.status(500).json({message: "Internal server error during deleting todo"});
   }
 }
+
+export async function getTodos(req: Request, res: Response) {
+  const userEmail = req.user?.email;
+  try {
+    const todos = await prisma.todo.findMany({
+      where: {
+        user: {
+          email: userEmail,
+        }
+      }
+    });
+    return res.status(200).json({
+      message: "Todos retrieved successfully",
+      todos: todos,
+    });
+  } catch(error) {
+    return res.status(500).json({message: "Internal server error during retrieving todos"});
+  }
+}
