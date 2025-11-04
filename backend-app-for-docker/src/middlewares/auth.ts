@@ -20,7 +20,7 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET is not defined in environment variables");
 }
 
-async function authMiddleware(req: Request, res: Response, next: NextFunction) {
+export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res
